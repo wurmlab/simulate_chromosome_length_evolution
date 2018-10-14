@@ -13,7 +13,7 @@ option_list <- list(
   make_option(c("-i", "--insertion_rate"), type="numeric", default=5e-6,
               help="Insertion mutation rate [default %default]",
               metavar="number"),
-  make_option(c("-d", "--deletion_rate"), type="numeric", default=1e-5,
+  make_option(c("-d", "--deletion_rate"), type="numeric", default=5e-6,
               help="Insertion mutation rate [default %default]",
               metavar="number"),
   make_option(c("-I", "--intactness_matrix"), type="character", default="int_out.txt",
