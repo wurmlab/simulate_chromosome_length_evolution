@@ -289,7 +289,7 @@ chromosome        <- do.call(c, chromosome)
 chromosome_list   <- lapply(1:N, function(i) return(chromosome))
 
 # Setup a matrix with the with the 'intactness index'
-     # for each gene in each chromosome
+#      for each gene in each chromosome
 # where 1 == 100%, or completely intact
 # The genes are numbered 1:gene_number;
 # the intactness of the i-th gene is in the i-th position in this vector
