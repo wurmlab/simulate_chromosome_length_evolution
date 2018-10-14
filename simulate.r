@@ -34,14 +34,14 @@ generation_number  <- 1000
 # Chromosome setup
 N                  <- 1000 # number of individuals
 gene_length        <- 2000
-intergene_length   <- 6000
+intergene_length   <- 10000
 gene_number        <- 100
 
 # Mutation setup
 # per base pair per individual per generation
 insertion_rate     <- opt$insertion_rate
 deletion_rate      <- opt$deletion_rate
-mean_mutation_size <- 1000
+mean_mutation_size <- 500
 
 # Cost of mutations
 cost_of_intergenic_insertion <- 0.1
