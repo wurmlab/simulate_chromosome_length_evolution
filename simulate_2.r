@@ -252,8 +252,9 @@ runSimulation <- function(generation_number,
     if (generation %in% save_every_nth_seq) {
       generation_result_df            <- chromLenSummary(chromosome_list, locus_value)
       generation_result_df$generation <- generation
-      generation_result_df <- generation_result_df[,c(ncol(generation_result_df),
-                                                      1:(ncol(generation_result_df)-1))]
+      col_order <- colnames(generation_result_df)
+      col_order <- c('generation', col_order[col_order != 'generation'])
+      generation_result_df <- generation_result_df[, col_order]
       results_list[[which(save_every_nth_seq == generation) + 1]] <- generation_result_df
     }
   }
