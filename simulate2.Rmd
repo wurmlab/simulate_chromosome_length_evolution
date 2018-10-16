@@ -1,0 +1,226 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Introduction
+
+```{r functions, echo = FALSE}
+
+source('simulation_functions.r')
+
+```
+
+## Run simulations
+
+We first test cases with neutral evolution. We care at looking at different rates of insertions and deletions relative to each other.
+
+```{r neutral_simulation, cache=TRUE, include=TRUE, echo = TRUE}
+
+neutral_no_bias <- runSimulation(generation_number   = 500,
+                                 N                   = 1000,
+                                 chromosome_length   = 4000,
+                                 deletion_rate       = 1/2000,
+                                 deletion_size       = 50,
+                                 point_mutation_rate = 0,
+                                 point_mutation_cost = 0,
+                                 locus_value         = 10,
+                                 insertion_rate      = 1/2000,
+                                 insertion_size      = 50,
+                                 insertion_cost      = 0,
+                                 every_nth           = 5,
+                                 neutral = TRUE)
+
+
+neutral_del_bias <- runSimulation(generation_number  = 500,
+                                 N                   = 1000,
+                                 chromosome_length   = 4000,
+                                 deletion_rate       = 2/2000,
+                                 deletion_size       = 50,
+                                 point_mutation_rate = 0,
+                                 point_mutation_cost = 0,
+                                 locus_value         = 10,
+                                 insertion_rate      = 1/2000,
+                                 insertion_size      = 50,
+                                 insertion_cost      = 0,
+                                 every_nth           = 5,
+                                 neutral             = TRUE)
+
+neutral_ins_bias <- runSimulation(generation_number   = 40,
+                                  N                   = 1000,
+                                  chromosome_length   = 4000,
+                                  deletion_rate       = 1/2000,
+                                  deletion_size       = 50,
+                                  point_mutation_rate = 0,
+                                  point_mutation_cost = 0,
+                                  locus_value         = 10,
+                                  insertion_rate      = 2/2000,
+                                  insertion_size      = 50,
+                                  insertion_cost      = 0,
+                                  every_nth           = 5,
+                                  neutral             = TRUE)
+
+neutral_no_bias$simulation  <- "Neutral, no bias"
+neutral_del_bias$simulation <- "Neutral, deletion bias"
+neutral_ins_bias$simulation <- "Neutral, insertion bias"
+
+neutral_results <- rbind(neutral_no_bias, neutral_del_bias, neutral_ins_bias)
+
+ggplot(neutral_results) +
+  geom_point(aes(x = generation, y = mean_length, colour = simulation)) + theme_bw()
+
+```
+
+We now test whether accruing a cost to deletions increases the size of the chromosome. To do this, we give each locus a fitness value (fixed at 10), which is removed by deletions. Insertions have no fitness cost.
+
+```{r deletion_cost, include=TRUE, echo = TRUE, cache=FALSE}
+
+deletion_cost   <- runSimulation(generation_number   = 1000,
+                                 N                   = 1000,
+                                 chromosome_length   = 4000,
+                                 deletion_rate       = 1/2000,
+                                 deletion_size       = 50,
+                                 point_mutation_rate = 0,
+                                 point_mutation_cost = 0,
+                                 locus_value         = 10,
+                                 insertion_rate      = 1/2000,
+                                 insertion_size      = 50,
+                                 insertion_cost      = 0,
+                                 every_nth           = 5,
+                                 neutral             = FALSE)
+
+
+
+deletion_cost$simulation  <- "Costly deletions and neutral insertions"
+
+ggplot(deletion_cost) +
+  geom_point(aes(x = generation, y = mean_length, colour = simulation)) + theme_bw()
+
+```
+
+As expected, the average chromosome eventually gets quite large, as the population accumulates insertions but purges highly deleterious deletions.
+
+However, a non-recombining chromosome is thought to undergo sequence-level degeneration as well degeneration based on insertions and deletions. In the following simulation, we include weakly deleterious point mutations that decrease the fitness value of the locus (which starts at 10) by 2. In this simulation, the size of the chromosome eventually plateaus, as the cost of deletions decreases.
+
+```{r deletion_point_mutation, include=TRUE, echo=TRUE, cache=FALSE}
+
+deletion_point_mutation_1   <- runSimulation(generation_number   = 1000,
+                                             N                   = 1000,
+                                             chromosome_length   = 4000,
+                                             deletion_rate       = 1/2000,
+                                             deletion_size       = 50,
+                                             point_mutation_rate = 5/200,
+                                             point_mutation_cost = 2,
+                                             locus_value         = 10,
+                                             insertion_rate      = 1/2000,
+                                             insertion_size      = 50,
+                                             insertion_cost      = 0,
+                                             every_nth           = 5,
+                                             neutral             = FALSE)
+
+deletion_point_mutation_2   <- runSimulation(generation_number   = 1000,
+                                             N                   = 1000,
+                                             chromosome_length   = 4000,
+                                             deletion_rate       = 1/2000,
+                                             deletion_size       = 50,
+                                             point_mutation_rate = 5/200,
+                                             point_mutation_cost = 5,
+                                             locus_value         = 10,
+                                             insertion_rate      = 1/2000,
+                                             insertion_size      = 50,
+                                             insertion_cost      = 0,
+                                             every_nth           = 5,
+                                             neutral             = FALSE)
+
+deletion_point_mutation_3   <- runSimulation(generation_number   = 1000,
+                                             N                   = 1000,
+                                             chromosome_length   = 4000,
+                                             deletion_rate       = 1/2000,
+                                             deletion_size       = 50,
+                                             point_mutation_rate = 10/200,
+                                             point_mutation_cost = 10,
+                                             locus_value         = 10,
+                                             insertion_rate      = 1/2000,
+                                             insertion_size      = 50,
+                                             insertion_cost      = 0,
+                                             every_nth           = 5,
+                                             neutral             = FALSE)
+
+deletion_point_mutation_1$simulation <- "Costly deletions, neutral insertions and point mutations with cost 2"
+deletion_point_mutation_2$simulation <- "Costly deletions, neutral insertions and point mutations with cost 5"
+deletion_point_mutation_3$simulation <- "Costly deletions, neutral insertions and point mutations with cost 10 and high rate"
+
+deletion_point_mutation_df <- rbind(deletion_point_mutation_1,
+                                    deletion_point_mutation_2,
+                                    deletion_point_mutation_3,
+                                    deletion_cost)
+
+ggplot(deletion_point_mutation_df) +
+  geom_point(aes(x = generation, y = mean_length, colour = simulation)) + theme_bw()
+
+```
+
+Our simulations suggest that the size of the chromosome undergoes a very large increase, but slower to decrease. This is due to the absence of a cost for insertions: after the degeneration of the chromosome, deletions become neutral and the size of the chromosome will evolve mainly via drift. There are two conditions in which the size of the chromosomes can decrease faster after their initial increase. The first a having a deletion rate that is slightly higher than the insertion rate, which slows down the initial increase in size of the non-recombining chromosome, but eventually accelerates its decrease. The other is having cost associated with 'junk' loci in the genome. We simulated this by adding a multiplier cost that reduces an individual's fitness proportionally to the number of non-functional loci (i.e. the loci introduced by insertions or rendered non-functional by repeated point mutations).
+
+
+```{r insertion_cost, include=TRUE, echo = TRUE, cache=FALSE}
+
+
+insertion_deletion_point    <- runSimulation(generation_number   = 1000,
+                                             N                   = 1000,
+                                             chromosome_length   = 4000,
+                                             deletion_rate       = 1/2000,
+                                             deletion_size       = 50,
+                                             point_mutation_rate = 5/200,
+                                             point_mutation_cost = 5,
+                                             locus_value         = 10,
+                                             insertion_rate      = 1/2000,
+                                             insertion_size      = 50,
+                                             insertion_cost      = 0,
+                                             every_nth           = 5,
+                                             neutral             = FALSE)
+
+insertion_high_deletion_point    <- runSimulation(generation_number   = 1000,
+                                                   N                   = 1000,
+                                                   chromosome_length   = 4000,
+                                                   deletion_rate       = 1.2/2000,
+                                                   deletion_size       = 50,
+                                                   point_mutation_rate = 5/200,
+                                                   point_mutation_cost = 5,
+                                                   locus_value         = 10,
+                                                   insertion_rate      = 1/2000,
+                                                   insertion_size      = 50,
+                                                   insertion_cost      = 0,
+                                                   every_nth           = 5,
+                                                   neutral             = FALSE)
+
+insertion_cost_deletion_point    <- runSimulation(generation_number   = 1000,
+                                                   N                   = 1000,
+                                                   chromosome_length   = 4000,
+                                                   deletion_rate       = 1/2000,
+                                                   deletion_size       = 50,
+                                                   point_mutation_rate = 5/200,
+                                                   point_mutation_cost = 5,
+                                                   locus_value         = 10,
+                                                   insertion_rate      = 1/2000,
+                                                   insertion_size      = 50,
+                                                   insertion_cost      = 0.5,
+                                                   every_nth           = 5,
+                                                   neutral             = FALSE)
+
+
+
+insertion_deletion_point$simulation      <- "Insertion, deletion and point mutation"
+insertion_high_deletion_point$simulation <- "Higher deletion rate"
+insertion_cost_deletion_point$simulation <- "Costly junk"
+
+graph_df <- rbind(insertion_deletion_point,
+                                    insertion_high_deletion_point,
+                                    insertion_cost_deletion_point)
+
+ggplot(graph_df) +
+  geom_point(aes(x = generation, y = mean_length, colour = simulation)) + theme_bw()
+
+```
