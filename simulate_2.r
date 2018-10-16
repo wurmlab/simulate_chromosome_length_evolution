@@ -185,9 +185,9 @@ runSimulation <- function(generation_number,
   chromosome        <- rep(locus_value, times = chromosome_length)
   chromosome_list   <- lapply(1:N, function(i) return(chromosome))
 
-  results_list <- list()
-  results_list[[1]]            <- chromLenSummary(chromosome_list, locus_value)
-  results_list[[1]]$generation <- 1
+  results_list      <- list()
+  results_list[[1]] <- data.frame(generation = 1,
+                                  chromLenSummary(chromosome_list, locus_value))
 
   save_every_nth_seq <- seq(from = every_nth, to = generation_number, by = every_nth)
 
