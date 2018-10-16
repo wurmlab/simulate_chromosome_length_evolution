@@ -11,11 +11,11 @@ We thus run two simulations. In the first, we have an equal mutations rate for i
 mkdir -p tmp
 module load R
 
-Rscript simulate.r \
-  --insertion_rate 5e-6 \
-  --deletion_rate 5e-6 \
-  --intactness_matrix tmp/2018-10-14_5e-6-5e-6-matrix.txt \
-  --chromosome_list_dir tmp/2018-10-14_5e-6-5e-6-matrix-chrom_out \
+Rscript simulate.r \ \
+	--insertion_rate 5e-6 \ \
+	--deletion_rate 5e-6 \ \
+	--intactness_matrix tmp/2018-10-14_5e-6-5e-6-matrix.txt \ \
+	--chromosome_list_dir tmp/2018-10-14_5e-6-5e-6-matrix-chrom_out \
   1> tmp/2018-10-14_5e-6-5e-6.out \
   2> tmp/2018-10-14_5e-6-5e-6.err
 
@@ -25,14 +25,202 @@ In the second simulation, we select a value that gives us double the deletions (
 
 ```sh
 
-Rscript simulate.r \
-  --insertion_rate 5e-6 \
-  --deletion_rate 1e-05 \
-  --intactness_matrix tmp/2018-10-14_5e-6-1e-05-matrix.txt \
-  --chromosome_list_dir tmp/2018-10-14_5e-6-1e-05-matrix-chrom_out \
+Rscript simulate.r \ \
+	--insertion_rate 5e-6 \ \
+	--deletion_rate 1e-05 \ \
+	--intactness_matrix tmp/2018-10-14_5e-6-1e-05-matrix.txt \ \
+	--chromosome_list_dir tmp/2018-10-14_5e-6-1e-05-matrix-chrom_out \
   1> tmp/2018-10-14_5e-6-1e-05.out \
   2> tmp/2018-10-14_5e-6-1e-05.err
 
 ```
 
 To increase the run speed, we are only recording the simulation results at every 20th generation.
+
+## Secind simulation
+
+This simulation did not quite work. I have developed a different approach.
+
+## Run simulations
+
+We first test cases with neutral evolution. We care at looking at different rates of insertions and deletions relative to each other.
+
+```sh
+
+mkdir -p tmp/simulations/neutral_1
+
+parallel -j 20 \
+'Rscript simulate_2.r \
+	--generation_number 500 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 5e-04 \
+	--deletion_size 50 \
+	--point_mutation_rate 0 \
+	--point_mutation_cost 0 \
+	--locus_value 10 \
+	--insertion_rate 5e-04 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral TRUE \
+	--chromosome_list_out tmp/simulations/neutral_1/simulation_{}.txt' &
+
+	--generation_number 500 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 2/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 0 \
+	--point_mutation_cost 0 \
+	--locus_value 10 \
+	--insertion_rate 1/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral TRUE \
+	--chromosome_list_out
+ \
+	--generation_number 40 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 1/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 0 \
+	--point_mutation_cost 0 \
+	--locus_value 10 \
+	--insertion_rate 2/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral TRUE \
+	--chromosome_list_out
+
+```
+
+We now test whether accruing a cost to deletions increases the size of the chromosome. To do this, we give each locus a fitness value (fixed at 10), which is removed by deletions. Insertions have no fitness cost.
+
+```sh
+ \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 1/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 0 \
+	--point_mutation_cost 0 \
+	--locus_value 10 \
+	--insertion_rate 1/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral FALSE \
+	--chromosome_list_out
+
+```
+
+As expected, the average chromosome eventually gets quite large, as the population accumulates insertions but purges highly deleterious deletions.
+
+However, a non-recombining chromosome is thought to undergo sequence-level degeneration as well degeneration based on insertions and deletions. In the following simulation, we include weakly deleterious point mutations that decrease the fitness value of the locus (which starts at 10) by 2. In this simulation, the size of the chromosome eventually plateaus, as the cost of deletions decreases.
+
+```sh
+ \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 1/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 5/200 \
+	--point_mutation_cost 2 \
+	--locus_value 10 \
+	--insertion_rate 1/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral FALSE \
+	--chromosome_list_out
+ \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 1/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 5/200 \
+	--point_mutation_cost 5 \
+	--locus_value 10 \
+	--insertion_rate 1/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral FALSE \
+	--chromosome_list_out
+ \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 1/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 10/200 \
+	--point_mutation_cost 10 \
+	--locus_value 10 \
+	--insertion_rate 1/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral FALSE \
+	--chromosome_list_out
+
+```
+
+Our simulations suggest that the size of the chromosome undergoes a very large increase, but slower to decrease. This is due to the absence of a cost for insertions: after the degeneration of the chromosome, deletions become neutral and the size of the chromosome will evolve mainly via drift. There are two conditions in which the size of the chromosomes can decrease faster after their initial increase. The first a having a deletion rate that is slightly higher than the insertion rate, which slows down the initial increase in size of the non-recombining chromosome, but eventually accelerates its decrease. The other is having cost associated with 'junk' loci in the genome. We simulated this by adding a multiplier cost that reduces an individual's fitness proportionally to the number of non-functional loci (i.e. the loci introduced by insertions or rendered non-functional by repeated point mutations).
+
+
+```sh
+
+ \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 1/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 5/200 \
+	--point_mutation_cost 5 \
+	--locus_value 10 \
+	--insertion_rate 1/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral FALSE \
+	--chromosome_list_out
+ \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 1.2/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 5/200 \
+	--point_mutation_cost 5 \
+	--locus_value 10 \
+	--insertion_rate 1/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0 \
+	--every_nth 5 \
+	--neutral FALSE \
+	--chromosome_list_out
+ \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 1/2000 \
+	--deletion_size 50 \
+	--point_mutation_rate 5/200 \
+	--point_mutation_cost 5 \
+	--locus_value 10 \
+	--insertion_rate 1/2000 \
+	--insertion_size 50 \
+	--insertion_cost 0.5 \
+	--every_nth 5 \
+	--neutral FALSE \
+	--chromosome_list_out
+
+```
