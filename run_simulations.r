@@ -48,7 +48,7 @@ opt        <- parse_args(opt_parser)
 # ---------------------------------------------------------------------------- #
 # Load the functions that run the simulation
 
-source('simulation_functions.r')
+source('simulation_functions.R')
 
 # ---------------------------------------------------------------------------- #
 # RUN SIMULATION

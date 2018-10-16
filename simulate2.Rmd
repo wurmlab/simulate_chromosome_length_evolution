@@ -9,7 +9,7 @@ output:
 
 ```{r functions, echo = FALSE}
 
-source('simulation_functions.r')
+source('simulation_functions.R')
 
 ```
 
