@@ -172,7 +172,7 @@ parallel -j 26 \
 	--insertion_cost 0.5 \
 	--every_nth 5 \
 	--neutral FALSE \
-  --chromosome_list_out tmp/simulations/insertion_cost/simulation_{}.txt' ::: {1..50}
+  --chromosome_list_out tmp/simulations/insertion_cost_1/simulation_{}.txt' ::: {1..50}
 
 
 mkdir -p tmp/simulations/insertion_cost_2
@@ -191,4 +191,4 @@ parallel -j 26 \
 	--insertion_cost 1 \
 	--every_nth 5 \
 	--neutral FALSE \
-  --chromosome_list_out tmp/simulations/insertion_cost/simulation_{}.txt' ::: {1..50}
+  --chromosome_list_out tmp/simulations/insertion_cost_2/simulation_{}.txt' ::: {1..50}
