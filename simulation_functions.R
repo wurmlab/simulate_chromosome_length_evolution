@@ -200,7 +200,7 @@ runSimulation <- function(generation_number,
         # and the cost is 1, then we reduce the fitness of the individual by 40%
       if (insertion_cost > 0) {
         zero_length                 <- sapply(simulation_results,
-                                              function(x) sum(x == 0)/length(x))
+                  function(x) ifelse(length(x) > 0, sum(x == 0)/length(x), 0))
         insertion_fitness_reduction <- zero_length * insertion_cost
         chromosome_fitness          <- chromosome_fitness - insertion_fitness_reduction * chromosome_fitness
       }

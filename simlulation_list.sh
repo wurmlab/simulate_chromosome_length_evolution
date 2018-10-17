@@ -88,24 +88,6 @@ parallel -j 13 \
 # fitness value of the locus (which starts at 10) by 2. In this simulation, the
 # size of the chromosome eventually plateaus, as the cost of deletions decreases.
 
-mkdir -p tmp/simulations/point_mutations_1
-parallel -j 13 \
-'Rscript run_simulations.r \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 5e-04 \
-	--deletion_size 50 \
-	--point_mutation_rate 0.025 \
-	--point_mutation_cost 2 \
-	--locus_value 10 \
-	--insertion_rate 5e-04 \
-	--insertion_size 50 \
-	--insertion_cost 0 \
-	--every_nth 5 \
-	--neutral FALSE \
-	--chromosome_list_out
-  --chromosome_list_out tmp/simulations/point_mutations_1/simulation_{}.txt' ::: {1..50}
-
 mkdir -p tmp/simulations/point_mutations_2
 parallel -j 13 \
   'Rscript run_simulations.r \
@@ -162,7 +144,7 @@ parallel -j 13 \
   --generation_number 1000 \
   --population_size 1000 \
   --chromosome_length 4000 \
-  --deletion_rate 1.0.001 \
+  --deletion_rate 6e-04 \
   --deletion_size 50 \
   --point_mutation_rate 0.025 \
   --point_mutation_cost 5 \
@@ -174,8 +156,8 @@ parallel -j 13 \
   --neutral FALSE \
   --chromosome_list_out tmp/simulations/deletion_bias/simulation_{}.txt' ::: {1..50}
 
-mkdir -p tmp/simulations/insertion_cost
-parallel -j 13 \
+mkdir -p tmp/simulations/insertion_cost_1
+parallel -j 26 \
   'Rscript run_simulations.r \
 	--generation_number 1000 \
 	--population_size 1000 \
@@ -188,6 +170,25 @@ parallel -j 13 \
 	--insertion_rate 5e-04 \
 	--insertion_size 50 \
 	--insertion_cost 0.5 \
+	--every_nth 5 \
+	--neutral FALSE \
+  --chromosome_list_out tmp/simulations/insertion_cost/simulation_{}.txt' ::: {1..50}
+
+
+mkdir -p tmp/simulations/insertion_cost_2
+parallel -j 26 \
+  'Rscript run_simulations.r \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 5e-04 \
+	--deletion_size 50 \
+	--point_mutation_rate 0.025 \
+	--point_mutation_cost 5 \
+	--locus_value 10 \
+	--insertion_rate 5e-04 \
+	--insertion_size 50 \
+	--insertion_cost 1 \
 	--every_nth 5 \
 	--neutral FALSE \
   --chromosome_list_out tmp/simulations/insertion_cost/simulation_{}.txt' ::: {1..50}

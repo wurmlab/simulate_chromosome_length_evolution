@@ -47,62 +47,23 @@ We first test cases with neutral evolution. We care at looking at different rate
 
 ```sh
 
-mkdir -p tmp/simulations/neutral_1
-module load parallel/20170422
-module load R/3.4.3
+cd tmp/simulations/neutral_1
+for p in *; do
+	awk '{print "neutral_1\t"FILENAME"\t"$0}' $p >> ../neutral_all_sim
+done
+cd ../../../
 
-parallel -j 13 \
-'Rscript run_simulations.r \
-	--generation_number 500 \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 5e-04 \
-	--deletion_size 50 \
-	--point_mutation_rate 0 \
-	--point_mutation_cost 0 \
-	--locus_value 10 \
-	--insertion_rate 5e-04 \
-	--insertion_size 50 \
-	--insertion_cost 0 \
-	--every_nth 5 \
-	--neutral TRUE \
-	--chromosome_list_out tmp/simulations/neutral_1/simulation_{}.txt' ::: {1..50}
+cd tmp/simulations/neutral_2
+for p in *; do
+	awk '{print "neutral_2\t"FILENAME"\t"$0}' $p >> ../neutral_all_sim
+done
+cd ../../../
 
-mkdir -p tmp/simulations/neutral_2
-parallel -j 13 \
-'Rscript run_simulations.r \
-	--generation_number 500 \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 0.001 \
-	--deletion_size 50 \
-	--point_mutation_rate 0 \
-	--point_mutation_cost 0 \
-	--locus_value 10 \
-	--insertion_rate 5e-04 \
-	--insertion_size 50 \
-	--insertion_cost 0 \
-	--every_nth 5 \
-	--neutral TRUE \
-  --chromosome_list_out tmp/simulations/neutral_2/simulation_{}.txt' ::: {1..50}
-
-mkdir -p tmp/simulations/neutral_3
-parallel -j 13 \
-'Rscript run_simulations.r \
-	--generation_number 40 \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 5e-04 \
-	--deletion_size 50 \
-	--point_mutation_rate 0 \
-	--point_mutation_cost 0 \
-	--locus_value 10 \
-	--insertion_rate 0.001 \
-	--insertion_size 50 \
-	--insertion_cost 0 \
-	--every_nth 5 \
-	--neutral TRUE \
-  --chromosome_list_out tmp/simulations/neutral_3/simulation_{}.txt' ::: {1..50}
+cd tmp/simulations/neutral_3
+for p in *; do
+	awk '{print "neutral_3\t"FILENAME"\t"$0}' $p >> ../neutral_all_sim
+done
+cd ../../../
 
 ```
 
@@ -110,23 +71,11 @@ We now test whether accruing a cost to deletions increases the size of the chrom
 
 ```sh
 
- mkdir -p tmp/simulations/deletion_with_cost
- parallel -j 13 \
- 'Rscript run_simulations.r \
- 	--generation_number 1000 \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 5e-04 \
-	--deletion_size 50 \
-	--point_mutation_rate 0 \
-	--point_mutation_cost 0 \
-	--locus_value 10 \
-	--insertion_rate 5e-04 \
-	--insertion_size 50 \
-	--insertion_cost 0 \
-	--every_nth 5 \
-	--neutral FALSE \
-  --chromosome_list_out tmp/simulations/deletion_with_cost/simulation_{}.txt' ::: {1..50}
+cd tmp/simulations/deletion_with_cost
+for p in *; do
+	awk '{print "deletion_with_cost\t"FILENAME"\t"$0}' $p >> ../deletion_with_cost_all_sim
+done
+cd ../../../
 
 ```
 
@@ -136,60 +85,17 @@ However, a non-recombining chromosome is thought to undergo sequence-level degen
 
 ```sh
 
-mkdir -p tmp/simulations/point_mutations_1
-parallel -j 13 \
-'Rscript run_simulations.r \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 5e-04 \
-	--deletion_size 50 \
-	--point_mutation_rate 0.025 \
-	--point_mutation_cost 2 \
-	--locus_value 10 \
-	--insertion_rate 5e-04 \
-	--insertion_size 50 \
-	--insertion_cost 0 \
-	--every_nth 5 \
-	--neutral FALSE \
-	--chromosome_list_out
-  --chromosome_list_out tmp/simulations/point_mutations_1/simulation_{}.txt' ::: {1..50}
+cd tmp/simulations/point_mutations_2
+for p in *; do
+	awk '{print "point_mutations_2\t"FILENAME"\t"$0}' $p >> ../point_mutations_all_sim
+done
+cd ../../../
 
-mkdir -p tmp/simulations/point_mutations_2
-parallel -j 13 \
-  'Rscript run_simulations.r \
-  --generation_number 1000 \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 5e-04 \
-	--deletion_size 50 \
-	--point_mutation_rate 0.025 \
-	--point_mutation_cost 5 \
-	--locus_value 10 \
-	--insertion_rate 5e-04 \
-	--insertion_size 50 \
-	--insertion_cost 0 \
-	--every_nth 5 \
-	--neutral FALSE \
-  --chromosome_list_out tmp/simulations/point_mutations_2/simulation_{}.txt' ::: {1..50}
-
-
-mkdir -p tmp/simulations/point_mutations_3
-parallel -j 13 \
-'Rscript run_simulations.r \
-  --generation_number 1000 \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 5e-04 \
-	--deletion_size 50 \
-	--point_mutation_rate 0.05 \
-	--point_mutation_cost 10 \
-	--locus_value 10 \
-	--insertion_rate 5e-04 \
-	--insertion_size 50 \
-	--insertion_cost 0 \
-	--every_nth 5 \
-	--neutral FALSE \
-  --chromosome_list_out tmp/simulations/point_mutations_3/simulation_{}.txt' ::: {1..50}
+cd tmp/simulations/point_mutations_3
+for p in *; do
+	awk '{print "point_mutations_3\t"FILENAME"\t"$0}' $p >> ../point_mutations_all_sim
+done
+cd ../../../
 
 ```
 
@@ -198,40 +104,16 @@ Our simulations suggest that the size of the chromosome undergoes a very large i
 
 ```sh
 
-mkdir -p tmp/simulations/deletion_bias
-parallel -j 13 \
-  'Rscript run_simulations.r \
-  --generation_number 1000 \
-  --population_size 1000 \
-  --chromosome_length 4000 \
-  --deletion_rate 1.0.001 \
-  --deletion_size 50 \
-  --point_mutation_rate 0.025 \
-  --point_mutation_cost 5 \
-  --locus_value 10 \
-  --insertion_rate 5e-04 \
-  --insertion_size 50 \
-  --insertion_cost 0 \
-  --every_nth 5 \
-  --neutral FALSE \
-  --chromosome_list_out tmp/simulations/deletion_bias/simulation_{}.txt' ::: {1..50}
+cd tmp/simulations/deletion_bias
+for p in *; do
+	awk '{print "deletion_bias\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
 
-mkdir -p tmp/simulations/insertion_cost
-parallel -j 13 \
-  'Rscript run_simulations.r \
-	--generation_number 1000 \
-	--population_size 1000 \
-	--chromosome_length 4000 \
-	--deletion_rate 5e-04 \
-	--deletion_size 50 \
-	--point_mutation_rate 0.025 \
-	--point_mutation_cost 5 \
-	--locus_value 10 \
-	--insertion_rate 5e-04 \
-	--insertion_size 50 \
-	--insertion_cost 0.5 \
-	--every_nth 5 \
-	--neutral FALSE \
-  --chromosome_list_out tmp/simulations/insertion_cost/simulation_{}.txt' ::: {1..50}
+cd tmp/simulations/insertion_cost
+for p in *; do
+	awk '{print "insertion_cost\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
 
 ```
