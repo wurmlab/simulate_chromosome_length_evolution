@@ -55,11 +55,16 @@ simulateInsertions <- function(chromosome,
                                mutation_rate,
                                mutation_size,
                                original_chromosome_length) {
-
+  stopifnot(length(chromosome) > 1)
   # Set up the mutations
   ## generate the number of mutations
   # Edge effect: cannot have an insertion in the last locus
   mutation_number <- rpois(n = 1, lambda = mutation_rate * original_chromosome_length)
+
+  ## edge case: more inserts than base pairs
+  if (mutation_number > (length(chromosome) - 1)) {
+    mutation_number = mutation_number - 1
+  }
 
   if (mutation_number > 0) {
 
@@ -67,6 +72,7 @@ simulateInsertions <- function(chromosome,
     mutation_starts <- sample(x       = 1:(length(chromosome) - 1),
                               size    = mutation_number,
                               replace = FALSE)
+    mutation_starts <- sort(mutation_starts)
     # For each insertion, slice the chromosome at position, add insertions,
           # and stich back together
     for (i in 1:mutation_number) {
@@ -74,6 +80,11 @@ simulateInsertions <- function(chromosome,
       chromosome   <- c(chromosome[1:ins_position],
                         rep(0, times = mutation_size),
                         chromosome[(ins_position + 1):length(chromosome)])
+      # update mutation_starts with the length of the insertion
+      if (i < mutation_number) {
+        i_remaining <- (i+1):length(mutation_starts)
+        mutation_starts[i_remaining] <- mutation_starts[i_remaining] + mutation_size
+      }
     }
   }
   return(chromosome)
@@ -88,15 +99,26 @@ simulateMutations <- function(chromosome,
                               insertion_size) {
 
   chromosome_length <- length(chromosome)
+  # Deletions, then point mutations, then insertions
+  # We also need to be careful with edge cases --- inserting does not work in
+      # chromosomes with  single base pair ---
+      # if a chromosome has a single base pair, force it to NULL
   if (chromosome_length > 0) {
-    # Deletions, then point mutations, then insertions
     if (deletion_rate > 0) {
           chromosome <- simulateDeletions(chromosome        = chromosome,
                                           mutation_rate     = deletion_rate,
                                           mutation_size     = deletion_size,
                                           chromosome_length = chromosome_length)
     }
+  }
 
+  # inserting does not work in chromosomes with  single base pair ---
+      # if a chromosome has a single base pair, force it to NULL
+  if (length(chromosome) == 1) {
+    chromosome <- chromosome[-1]
+  }
+
+  if (length(chromosome) > 0) {
     if (point_mutation_rate > 0) {
       chromosome <- simulatePointMutations(chromosome        = chromosome,
                                            mutation_rate     = point_mutation_rate,
