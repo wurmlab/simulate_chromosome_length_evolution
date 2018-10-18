@@ -133,7 +133,7 @@ simulateMutations <- function(chromosome,
     chromosome <- chromosome[-1]
   }
 
-  if (length(chromosome) > 0) {
+  if (length(chromosome) > 4) {
     if (point_mutation_rate > 0) {
       chromosome <- simulatePointMutations(chromosome        = chromosome,
                                            mutation_rate     = point_mutation_rate,

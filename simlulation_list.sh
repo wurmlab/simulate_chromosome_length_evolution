@@ -83,7 +83,7 @@ parallel -j 13 \
   --chromosome_list_out tmp/simulations/deletion_with_cost/simulation_{}.txt' ::: {1..50}
 
 mkdir -p tmp/simulations/deletion_with_cost_insertions_with_cost
-parallel -j 13 \
+parallel -j 26 \
 'Rscript run_simulations.r \
 	--generation_number 1000 \
 	--population_size 1000 \
@@ -98,7 +98,7 @@ parallel -j 13 \
 	--insertion_cost 10 \
 	--every_nth 5 \
 	--neutral FALSE \
- --chromosome_list_out tmp/simulations/deletion_with_cost/simulation_{}.txt' ::: {1..50}
+ --chromosome_list_out tmp/simulations/deletion_with_cost_insertions_with_cost/simulation_{}.txt' ::: {1..50}
 
 # a non-recombining chromosome is thought to undergo sequence-level degeneration
 # as well degeneration based on insertions and deletions. In the following
@@ -173,6 +173,79 @@ parallel -j 13 \
   --every_nth 5 \
   --neutral FALSE \
   --chromosome_list_out tmp/simulations/deletion_bias/simulation_{}.txt' ::: {1..50}
+
+mkdir -p tmp/simulations/deletion_bias_no_background_degeneration
+parallel -j 13 \
+  'Rscript run_simulations.r \
+  --generation_number 1000 \
+  --population_size 1000 \
+  --chromosome_length 4000 \
+  --deletion_rate 6e-04 \
+  --deletion_size 50 \
+  --point_mutation_rate 0 \
+  --point_mutation_cost 0 \
+  --locus_value 10 \
+  --insertion_rate 5e-04 \
+  --insertion_size 50 \
+  --insertion_cost 0 \
+  --every_nth 5 \
+  --neutral FALSE \
+  --chromosome_list_out tmp/simulations/deletion_bias_no_background_degeneration/simulation_{}.txt' ::: {1..50}
+
+
+mkdir -p tmp/simulations/deletion_size_bias_no_background_degeneration
+parallel -j 13 \
+  'Rscript run_simulations.r \
+  --generation_number 1000 \
+  --population_size 1000 \
+  --chromosome_length 4000 \
+  --deletion_rate 5e-04 \
+  --deletion_size 75 \
+  --point_mutation_rate 0 \
+  --point_mutation_cost 0 \
+  --locus_value 10 \
+  --insertion_rate 5e-04 \
+  --insertion_size 50 \
+  --insertion_cost 0 \
+  --every_nth 5 \
+  --neutral FALSE \
+  --chromosome_list_out tmp/simulations/deletion_size_bias_no_background_degeneration/simulation_{}.txt' ::: {1..50}
+
+mkdir -p tmp/simulations/deletion_bias_insertion_cost_no_background_degeneration
+parallel -j 13 \
+  'Rscript run_simulations.r \
+  --generation_number 1000 \
+  --population_size 1000 \
+  --chromosome_length 4000 \
+  --deletion_rate 6e-04 \
+  --deletion_size 50 \
+  --point_mutation_rate 0 \
+  --point_mutation_cost 0 \
+  --locus_value 10 \
+  --insertion_rate 5e-04 \
+  --insertion_size 50 \
+  --insertion_cost 10 \
+  --every_nth 5 \
+  --neutral FALSE \
+  --chromosome_list_out tmp/simulations/deletion_bias_insertion_cost_no_background_degeneration/simulation_{}.txt' ::: {1..50}
+
+mkdir -p tmp/simulations/deletion_bias_insertion_cost_background_degeneration
+parallel -j 13 \
+  'Rscript run_simulations.r \
+  --generation_number 1000 \
+  --population_size 1000 \
+  --chromosome_length 4000 \
+  --deletion_rate 6e-04 \
+  --deletion_size 50 \
+	--point_mutation_rate 0.025 \
+  --point_mutation_cost 5 \
+  --locus_value 10 \
+  --insertion_rate 5e-04 \
+  --insertion_size 50 \
+  --insertion_cost 10 \
+  --every_nth 5 \
+  --neutral FALSE \
+  --chromosome_list_out tmp/simulations/deletion_bias_insertion_cost_background_degeneration/simulation_{}.txt' ::: {1..50}
 
 mkdir -p tmp/simulations/insertion_cost_1
 parallel -j 26 \

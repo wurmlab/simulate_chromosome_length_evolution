@@ -77,6 +77,13 @@ for p in *; do
 done
 cd ../../../
 
+cd tmp/simulations/deletion_with_cost_insertions_with_cost
+for p in *; do
+	awk '{print "deletion_cost_insertion_cost\t"FILENAME"\t"$0}' $p >> ../deletion_with_cost_all_sim
+done
+cd ../../../
+
+
 ```
 
 As expected, the average chromosome eventually gets quite large, as the population accumulates insertions but purges highly deleterious deletions.
@@ -110,9 +117,21 @@ for p in *; do
 done
 cd ../../../
 
-cd tmp/simulations/insertion_cost
+cd tmp/simulations/deletion_bias_no_background_degeneration
 for p in *; do
-	awk '{print "insertion_cost\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+	awk '{print "deletion_bias_no_background\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/insertion_cost_1
+for p in *; do
+	awk '{print "insertion_cost_1\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/insertion_cost_2
+for p in *; do
+	awk '{print "insertion_cost_2\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
 done
 cd ../../../
 
