@@ -108,7 +108,8 @@ simulateMutations <- function(chromosome,
                               point_mutation_rate,
                               point_mutation_cost,
                               insertion_rate,
-                              insertion_size) {
+                              insertion_size,
+                              insertion_cost) {
 
   chromosome_length <- length(chromosome)
   # Deletions, then point mutations, then insertions
