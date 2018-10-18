@@ -82,6 +82,24 @@ parallel -j 13 \
 	--neutral FALSE \
   --chromosome_list_out tmp/simulations/deletion_with_cost/simulation_{}.txt' ::: {1..50}
 
+mkdir -p tmp/simulations/deletion_with_cost_insertions_with_cost
+parallel -j 13 \
+'Rscript run_simulations.r \
+	--generation_number 1000 \
+	--population_size 1000 \
+	--chromosome_length 4000 \
+	--deletion_rate 5e-04 \
+	--deletion_size 50 \
+	--point_mutation_rate 0 \
+	--point_mutation_cost 0 \
+	--locus_value 10 \
+	--insertion_rate 5e-04 \
+	--insertion_size 50 \
+	--insertion_cost 10 \
+	--every_nth 5 \
+	--neutral FALSE \
+ --chromosome_list_out tmp/simulations/deletion_with_cost/simulation_{}.txt' ::: {1..50}
+
 # a non-recombining chromosome is thought to undergo sequence-level degeneration
 # as well degeneration based on insertions and deletions. In the following
 # simulation, we include weakly deleterious point mutations that decrease the
@@ -169,7 +187,7 @@ parallel -j 26 \
 	--locus_value 10 \
 	--insertion_rate 5e-04 \
 	--insertion_size 50 \
-	--insertion_cost 0.5 \
+	--junk_cost 0.5 \
 	--every_nth 5 \
 	--neutral FALSE \
   --chromosome_list_out tmp/simulations/insertion_cost_1/simulation_{}.txt' ::: {1..50}
@@ -188,7 +206,7 @@ parallel -j 26 \
 	--locus_value 10 \
 	--insertion_rate 5e-04 \
 	--insertion_size 50 \
-	--insertion_cost 1 \
+	--junk_cost 1 \
 	--every_nth 5 \
 	--neutral FALSE \
   --chromosome_list_out tmp/simulations/insertion_cost_2/simulation_{}.txt' ::: {1..50}
