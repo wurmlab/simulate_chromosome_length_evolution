@@ -250,20 +250,21 @@ mkdir -p tmp/simulations/large_deletion
 parallel -j 26 \
   'Rscript run_simulations.r \
   --generation_number 1000 \
-  --population_size 20 \
+  --population_size 1000 \
   --chromosome_length 4000 \
   --deletion_rate 5e-04 \
   --deletion_size 50 \
   --point_mutation_rate 0 \
   --point_mutation_cost 0 \
   --locus_value 10 \
-  --insertion_rate 2.5e-06 \
-  --insertion_size 2000 \
+  --insertion_rate 5e-04 \
+  --insertion_size 50 \
   --insertion_cost 0 \
-  --large_deletion_rate 1e-08 \
+  --large_deletion_rate 1e-06 \
+  --large_deletion_size 2000 \
   --every_nth 5 \
   --neutral FALSE \
-  --chromosome_list_out tmp/simulations/deletion_bias_no_background_degeneration/simulation_{}.txt' ::: {1..50}
+  --chromosome_list_out tmp/simulations/large_deletion/simulation_{}.txt' ::: {1..10}
 
 mkdir -p tmp/simulations/insertion_cost_1
 parallel -j 26 \
