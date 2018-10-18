@@ -70,7 +70,9 @@ simulateInsertions <- function(chromosome,
   if (mutation_number > 0) {
 
     ## Mutation positions
-    mutation_starts <- sample(x       = 1:(length(chromosome) - 1),
+        ## Because of edge effects, we cannot have insertions in the first or
+        ## last two loci in the chromosome
+    mutation_starts <- sample(x       = 2:(length(chromosome) - 2),
                               size    = mutation_number,
                               replace = FALSE)
     mutation_starts <- sort(mutation_starts)
