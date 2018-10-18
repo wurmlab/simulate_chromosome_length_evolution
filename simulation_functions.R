@@ -127,7 +127,7 @@ simulateMutations <- function(chromosome,
                                     chromosome_length = original_chr_length)
   }
 
-  if (length(chromosome) > large_deletion_size & large_deletion_size > 0) {
+  if (length(chromosome) > large_deletion_size & large_deletion_rate > 0) {
     chromosome <- simulateDeletions(chromosome        = chromosome,
                                     mutation_rate     = large_deletion_rate,
                                     mutation_size     = large_deletion_size,
@@ -210,7 +210,7 @@ runSimulation <- function(generation_number,
 
     stopifnot(!sapply(simulation_results, function(x) any(is.na(x))))
 
-    if (any(sapply(simulation_results, length) > (5 * chromosome_length))) {
+    if (any(sapply(simulation_results, length) > (6 * chromosome_length))) {
       warning("Some chromosomes too large, breaking early")
       break
     }
