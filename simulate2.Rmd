@@ -59,21 +59,23 @@ colnames(neutral_simulations) <- results_colnames
 
 neutral_simulations$simulation_n <- as.character(neutral_simulations$simulation_n)
 neutral_simulations$simulation_n <- gsub("\\.txt", "", neutral_simulations$simulation_n)
+neutral_simulations$simulation_n <- gsub("simulation_", "", neutral_simulations$simulation_n)
+neutral_simulations$simulation_n <- as.numeric(neutral_simulations$simulation_n)
 
-neutral_simulations$simulation <- neutral_simulations$simulation_type
+neutral_simulations$simulation         <- neutral_simulations$simulation_type
 levels(neutral_simulations$simulation) <- c("Neutral, no bias",
                                             "Neutral, higher deletion rate",
                                             "Neutral, higher insertion rate")
 
 neutral_simulations %>%
-  filter(generation <= 500) %>%
+  filter(generation <= 1000 & simulation_n %in% 1:5) %>%
   ggplot() +
   geom_line(aes(x = generation,
                 y = mean_length,
                 colour = simulation,
                 group = interaction(simulation, simulation_n)),
             size = 0.5) + 
-  theme_bw() + theme(legend.position="bottom")
+  theme_bw() + theme(legend.position="right")
 
 ```
 
@@ -87,6 +89,8 @@ colnames(deletion_cost) <- results_colnames
 
 deletion_cost$simulation_n <- as.character(deletion_cost$simulation_n)
 deletion_cost$simulation_n <- gsub("\\.txt", "", deletion_cost$simulation_n)
+deletion_cost$simulation_n <- gsub("simulation_", "", deletion_cost$simulation_n)
+deletion_cost$simulation_n <- as.numeric(deletion_cost$simulation_n)
 
 deletion_cost$simulation <- deletion_cost$simulation_type
 levels(deletion_cost$simulation) <- c("Deleterious deletions,\n  deleterious insertions",
@@ -101,7 +105,7 @@ deletion_cost$simulation <- factor(deletion_cost$simulation,
                                      levels = levels(deletion_cost$simulation)[c(3,2,1)])
 
 deletion_cost %>%
-  filter(generation <= 500) %>%
+  filter(generation <= 1000 & simulation_n %in% 1:5) %>%
   ggplot() +
   geom_line(aes(x = generation,
                 y = mean_length,
@@ -116,7 +120,7 @@ The results of the simulations start to get a bit noisy, but we can solve this u
 ```{r deletion_cost_smooth, include=TRUE, echo = FALSE, cache=FALSE}
 
 deletion_cost %>%
-    filter(generation <= 500) %>%
+    filter(generation <= 1000 & simulation_n %in% 1:5) %>%
   ggplot() +
   stat_smooth(aes(x = generation,
                   y = mean_length,
@@ -140,6 +144,8 @@ colnames(point_mutations) <- results_colnames
 
 point_mutations$simulation_n <- as.character(point_mutations$simulation_n)
 point_mutations$simulation_n <- gsub("\\.txt", "", point_mutations$simulation_n)
+point_mutations$simulation_n <- gsub("simulation_", "", point_mutations$simulation_n)
+point_mutations$simulation_n <- as.numeric(point_mutations$simulation_n)
 
 point_mutations$simulation <- point_mutations$simulation_type
 levels(point_mutations$simulation) <- c("Deleterious deletions,\n background degeneration",
@@ -154,14 +160,14 @@ point_mutations$simulation <- factor(point_mutations$simulation,
                                      levels = levels(point_mutations$simulation)[c(which(re_level), which(!re_level))])
 
 point_mutations %>%
-  filter(generation <= 500) %>%
+  filter(generation <= 1000 & simulation_n %in% 1:5) %>%
   ggplot() +
     geom_line(aes(x = generation,
                   y = mean_length,
                   colour = simulation,
                   group = interaction(simulation, simulation_n)),
               size = 0.5) + 
-    theme_bw() + theme(legend.position="bottom")
+    theme_bw() + theme(legend.position="right")
 
 ```
 
@@ -171,13 +177,13 @@ The results of the simulations start to get a bit noisy, but we can solve this u
 ```{r deletion_point_mutation_smooth, include=TRUE, echo = FALSE, cache=FALSE}
 
 point_mutations %>%
-    filter(generation <= 500) %>%
+    filter(generation <= 1000 & simulation_n %in% 1:5) %>%
   ggplot() +
   stat_smooth(aes(x = generation,
                   y = mean_length,
                   colour = simulation),
               size = 0.5) + 
-  theme_bw() + theme(legend.position="bottom")
+  theme_bw() + theme(legend.position="right")
 
 ```
 
@@ -196,6 +202,8 @@ colnames(insertion_cost) <- results_colnames
 
 insertion_cost$simulation_n <- as.character(insertion_cost$simulation_n)
 insertion_cost$simulation_n <- gsub("\\.txt", "", insertion_cost$simulation_n)
+insertion_cost$simulation_n <- gsub("simulation_", "", insertion_cost$simulation_n)
+insertion_cost$simulation_n <- as.numeric(insertion_cost$simulation_n)
 
 insertion_cost$simulation <- insertion_cost$simulation_type
 levels(insertion_cost$simulation) <- c("Higher deletion rate",
@@ -214,22 +222,22 @@ insertion_cost$simulation <- factor(insertion_cost$simulation,
                                                                                   which(!re_level))])
 
 insertion_cost %>%
-  filter(generation <= 500) %>%
+  filter(generation <= 1000 & simulation_n %in% 1:5) %>%
   ggplot() +
   geom_line(aes(x = generation,
                 y = mean_length,
                 colour = simulation,
                 group = interaction(simulation, simulation_n)),
             size = 0.5) + 
-  theme_bw() + theme(legend.position="bottom")
+  theme_bw() + theme(legend.position="right")
 
 insertion_cost %>%
-  filter(generation <= 500) %>%
+  filter(generation <= 1000 & simulation_n %in% 1:5) %>%
   ggplot() +
   stat_smooth(aes(x = generation,
                   y = mean_length,
                   colour = simulation),
               size = 0.5) + 
-  theme_bw() + theme(legend.position="bottom")
+  theme_bw() + theme(legend.position="right")
 
 ```
