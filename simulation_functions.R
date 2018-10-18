@@ -4,23 +4,23 @@ simulateDeletions <- function(chromosome,
                               mutation_size,
                               chromosome_length) {
 
-  if (chromosome_length > mutation_size) {
-    # Set up the mutations
-    ## generate the number of mutations
-    mutation_number   <- rpois(n = 1,
-                               lambda = mutation_rate * chromosome_length)
+  stopifnot(chromosome_length > mutation_size)
 
-    if (mutation_number > 0) {
-      ## Mutation positions
-      deletion_starts <- sample(x       = 1:chromosome_length,
-                                size    = mutation_number,
-                                replace = FALSE)
+  # Set up the mutations
+  ## generate the number of mutations
+  mutation_number   <- rpois(n = 1,
+                             lambda = mutation_rate * chromosome_length)
 
-      deletion_ends   <- deletion_starts + mutation_size
+  if (mutation_number > 0) {
+    ## Mutation positions
+    deletion_starts <- sample(x       = 1:chromosome_length,
+                              size    = mutation_number,
+                              replace = FALSE)
 
-      for (i in 1:mutation_number) {
-        chromosome <- chromosome[-c(deletion_starts[i]:deletion_ends[i])]
-      }
+    deletion_ends   <- deletion_starts + mutation_size
+
+    for (i in 1:mutation_number) {
+      chromosome <- chromosome[-c(deletion_starts[i]:deletion_ends[i])]
     }
   }
   return(chromosome)
@@ -109,6 +109,8 @@ simulateMutations <- function(chromosome,
                               deletion_size,
                               point_mutation_rate,
                               point_mutation_cost,
+                              large_deletion_rate,
+                              large_deletion_size,
                               insertion_rate,
                               insertion_size,
                               insertion_cost) {
@@ -118,13 +120,18 @@ simulateMutations <- function(chromosome,
   # We also need to be careful with edge cases --- inserting does not work in
       # chromosomes with  single base pair ---
       # if a chromosome has a single base pair, force it to NULL
-  if (chromosome_length > 0) {
-    if (deletion_rate > 0) {
-          chromosome <- simulateDeletions(chromosome        = chromosome,
-                                          mutation_rate     = deletion_rate,
-                                          mutation_size     = deletion_size,
-                                          chromosome_length = chromosome_length)
-    }
+  if (chromosome_length > deletion_size & deletion_rate > 0) {
+    chromosome <- simulateDeletions(chromosome        = chromosome,
+                                    mutation_rate     = deletion_rate,
+                                    mutation_size     = deletion_size,
+                                    chromosome_length = chromosome_length)
+  }
+
+  if (chromosome_length > large_deletion_size & large_deletion_size > 0) {
+    chromosome <- simulateDeletions(chromosome        = chromosome,
+                                    mutation_rate     = large_deletion_rate,
+                                    mutation_size     = large_deletion_size,
+                                    chromosome_length = chromosome_length)
   }
 
   # Insertions do not work in chromosomes with smaller than 5 loci ---
@@ -133,21 +140,19 @@ simulateMutations <- function(chromosome,
     chromosome <- chromosome[-1]
   }
 
-  if (length(chromosome) > 4) {
-    if (point_mutation_rate > 0) {
-      chromosome <- simulatePointMutations(chromosome        = chromosome,
-                                           mutation_rate     = point_mutation_rate,
-                                           mutation_cost     = point_mutation_cost,
-                                           original_chromosome_length = chromosome_length)
-    }
+  if (length(chromosome) > 4 & point_mutation_rate > 0) {
+    chromosome <- simulatePointMutations(chromosome        = chromosome,
+                                         mutation_rate     = point_mutation_rate,
+                                         mutation_cost     = point_mutation_cost,
+                                         original_chromosome_length = chromosome_length)
+  }
 
-    if (insertion_rate > 0) {
-      chromosome <- simulateInsertions(chromosome        = chromosome,
-                                       mutation_rate     = insertion_rate,
-                                       mutation_size     = insertion_size,
-                                       insertion_cost    = insertion_cost,
-                                       original_chromosome_length = chromosome_length)
-    }
+  if (length(chromosome) > 4 & insertion_rate > 0) {
+    chromosome <- simulateInsertions(chromosome        = chromosome,
+                                     mutation_rate     = insertion_rate,
+                                     mutation_size     = insertion_size,
+                                     insertion_cost    = insertion_cost,
+                                     original_chromosome_length = chromosome_length)
   }
   return(chromosome)
 }
@@ -163,6 +168,8 @@ runSimulation <- function(generation_number,
                           insertion_rate,
                           insertion_size,
                           insertion_cost,
+                          large_deletion_rate,
+                          large_deletion_size,
                           junk_cost,
                           every_nth,
                           neutral_mode = FALSE) {
@@ -197,7 +204,9 @@ runSimulation <- function(generation_number,
                          point_mutation_cost = point_mutation_cost,
                          insertion_rate      = insertion_rate,
                          insertion_size      = insertion_size,
-                         insertion_cost      = insertion_cost))
+                         insertion_cost      = insertion_cost,
+                         large_deletion_rate = large_deletion_rate,
+                         large_deletion_size = large_deletion_size))
 
     stopifnot(!sapply(simulation_results, function(x) any(is.na(x))))
 
