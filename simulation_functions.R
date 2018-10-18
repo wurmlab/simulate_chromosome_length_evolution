@@ -54,8 +54,9 @@ simulatePointMutations <- function(chromosome,
 simulateInsertions <- function(chromosome,
                                mutation_rate,
                                mutation_size,
+                               insertion_cost,
                                original_chromosome_length) {
-  stopifnot(length(chromosome) > 1)
+  stopifnot(length(chromosome) > 4)
   # Set up the mutations
   ## generate the number of mutations
   # Edge effect: cannot have an insertion in the last locus
@@ -77,9 +78,20 @@ simulateInsertions <- function(chromosome,
           # and stich back together
     for (i in 1:mutation_number) {
       ins_position <- mutation_starts[i]
-      chromosome   <- c(chromosome[1:ins_position],
+      # insertion cost affects the locus just before and just after the insertions
+      start_value <- chromosome[ins_position] - insertion_cost
+      start_value <- ifelse(start_value < 0, 0, start_value)
+
+      end_value   <- chromosome[ins_position + 1] - insertion_cost
+      end_value   <- ifelse(end_value < 0, 0, end_value)
+
+      # Add the loci with cost and the insertion
+      chromosome   <- c(chromosome[1:(ins_position - 1)],
+                        start_value,
                         rep(0, times = mutation_size),
-                        chromosome[(ins_position + 1):length(chromosome)])
+                        end_value,
+                        chromosome[(ins_position + 2):length(chromosome)])
+
       # update mutation_starts with the length of the insertion
       if (i < mutation_number) {
         i_remaining <- (i+1):length(mutation_starts)
@@ -112,9 +124,9 @@ simulateMutations <- function(chromosome,
     }
   }
 
-  # inserting does not work in chromosomes with  single base pair ---
-      # if a chromosome has a single base pair, force it to NULL
-  if (length(chromosome) == 1) {
+  # Insertions do not work in chromosomes with smaller than 5 loci ---
+      # if a chromosome has a 4 loci or less, force it to 0 loci
+  if (length(chromosome) <= 4) {
     chromosome <- chromosome[-1]
   }
 
@@ -130,6 +142,7 @@ simulateMutations <- function(chromosome,
       chromosome <- simulateInsertions(chromosome        = chromosome,
                                        mutation_rate     = insertion_rate,
                                        mutation_size     = insertion_size,
+                                       insertion_cost    = insertion_cost,
                                        original_chromosome_length = chromosome_length)
     }
   }
@@ -147,6 +160,7 @@ runSimulation <- function(generation_number,
                           insertion_rate,
                           insertion_size,
                           insertion_cost,
+                          junk_cost,
                           every_nth,
                           neutral_mode = FALSE) {
 
@@ -167,7 +181,7 @@ runSimulation <- function(generation_number,
 
   for (generation in 1:generation_number) {
 
-    stopifnot(insertion_cost >= 0 & insertion_cost <= 1)
+    stopifnot(junk_cost >= 0 & junk_cost <= 1)
 
     # print(paste(Sys.time(), ": Performing generation ", generation, sep = ''))
 
@@ -179,7 +193,8 @@ runSimulation <- function(generation_number,
                          point_mutation_rate = point_mutation_rate,
                          point_mutation_cost = point_mutation_cost,
                          insertion_rate      = insertion_rate,
-                         insertion_size      = insertion_size))
+                         insertion_size      = insertion_size,
+                         insertion_cost      = insertion_cost))
 
     stopifnot(!sapply(simulation_results, function(x) any(is.na(x))))
 
@@ -198,10 +213,10 @@ runSimulation <- function(generation_number,
       # Cost of insertions
        # It's a multiplier cost - if 40% of the chromosome is '0',
         # and the cost is 1, then we reduce the fitness of the individual by 40%
-      if (insertion_cost > 0) {
+      if (junk_cost > 0) {
         zero_length                 <- sapply(simulation_results,
                   function(x) ifelse(length(x) > 0, sum(x == 0)/length(x), 0))
-        insertion_fitness_reduction <- zero_length * insertion_cost
+        insertion_fitness_reduction <- zero_length * junk_cost
         chromosome_fitness          <- chromosome_fitness - insertion_fitness_reduction * chromosome_fitness
       }
 
