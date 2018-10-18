@@ -115,23 +115,23 @@ simulateMutations <- function(chromosome,
                               insertion_size,
                               insertion_cost) {
 
-  chromosome_length <- length(chromosome)
+  original_chr_length <- length(chromosome)
   # Deletions, then point mutations, then insertions
   # We also need to be careful with edge cases --- inserting does not work in
       # chromosomes with  single base pair ---
       # if a chromosome has a single base pair, force it to NULL
-  if (chromosome_length > deletion_size & deletion_rate > 0) {
+  if (original_chr_length > deletion_size & deletion_rate > 0) {
     chromosome <- simulateDeletions(chromosome        = chromosome,
                                     mutation_rate     = deletion_rate,
                                     mutation_size     = deletion_size,
-                                    chromosome_length = chromosome_length)
+                                    chromosome_length = original_chr_length)
   }
 
-  if (chromosome_length > large_deletion_size & large_deletion_size > 0) {
+  if (length(chromosome) > large_deletion_size & large_deletion_size > 0) {
     chromosome <- simulateDeletions(chromosome        = chromosome,
                                     mutation_rate     = large_deletion_rate,
                                     mutation_size     = large_deletion_size,
-                                    chromosome_length = chromosome_length)
+                                    chromosome_length = original_chr_length)
   }
 
   # Insertions do not work in chromosomes with smaller than 5 loci ---
@@ -144,7 +144,7 @@ simulateMutations <- function(chromosome,
     chromosome <- simulatePointMutations(chromosome        = chromosome,
                                          mutation_rate     = point_mutation_rate,
                                          mutation_cost     = point_mutation_cost,
-                                         original_chromosome_length = chromosome_length)
+                                         original_chromosome_length = original_chr_length)
   }
 
   if (length(chromosome) > 4 & insertion_rate > 0) {
@@ -152,7 +152,7 @@ simulateMutations <- function(chromosome,
                                      mutation_rate     = insertion_rate,
                                      mutation_size     = insertion_size,
                                      insertion_cost    = insertion_cost,
-                                     original_chromosome_length = chromosome_length)
+                                     original_chromosome_length = original_chr_length)
   }
   return(chromosome)
 }
