@@ -63,8 +63,8 @@ simulateInsertions <- function(chromosome,
   mutation_number <- rpois(n = 1, lambda = mutation_rate * original_chromosome_length)
 
   ## edge case: more inserts than base pairs
-  if (mutation_number > (length(chromosome) - 1)) {
-    mutation_number = mutation_number - 1
+  if (mutation_number > (length(chromosome) - 3) {
+    mutation_number = length(chromosome) - 3
   }
 
   if (mutation_number > 0) {
