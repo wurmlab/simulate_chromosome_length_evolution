@@ -6,9 +6,10 @@
 module load parallel/20170422
 module load R/3.4.3
 
+mkdir -p tmp/simulations/neutral_1
 parallel -j 25 \
 'Rscript run_simulations.r \
-	--generation_number 500 \
+	--generation_number 1000 \
 	--population_size 1000 \
 	--chromosome_length 4000 \
 	--deletion_rate 5e-04 \
@@ -325,6 +326,27 @@ parallel -j 25 \
   --every_nth 5 \
   --neutral FALSE \
   --chromosome_list_out tmp/simulations/large_deletion_4/simulation_{}.txt' ::: {1..25}
+
+
+mkdir -p tmp/simulations/large_deletion_5
+parallel -j 25 \
+  'Rscript run_simulations.r \
+  --generation_number 1000 \
+  --population_size 1000 \
+  --chromosome_length 4000 \
+  --deletion_rate 5e-04 \
+  --deletion_size 50 \
+  --point_mutation_rate 0 \
+  --point_mutation_cost 0 \
+  --locus_value 10 \
+  --insertion_rate 5e-04 \
+  --insertion_size 50 \
+  --insertion_cost 0 \
+  --large_deletion_rate 1e-06 \
+  --large_deletion_size 10000 \
+  --every_nth 5 \
+  --neutral FALSE \
+  --chromosome_list_out tmp/simulations/large_deletion_5/simulation_{}.txt' ::: {1..25}
 
 mkdir -p tmp/simulations/insertion_cost_1
 parallel -j 25 \
