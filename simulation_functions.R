@@ -232,6 +232,9 @@ runSimulation <- function(generation_number,
         chromosome_fitness          <- chromosome_fitness - insertion_fitness_reduction * chromosome_fitness
       }
 
+      # Make sure no chromosomes have zero fitness (an indivdual with no Y chromosome is still viable)
+      chromosome_fitness <- chromosome_fitness + 1
+
       chromosome_fitness <- chromosome_fitness/max(chromosome_fitness)
 
     } else if (neutral_mode == TRUE) {
@@ -240,7 +243,7 @@ runSimulation <- function(generation_number,
       stop("neutral_mode can only be TRUE or FALSE")
     }
 
-    stopifnot(chromosome_fitness >= 0 & chromosome_fitness <= 1)
+    stopifnot(chromosome_fitness > 0 & chromosome_fitness <= 1)
 
 
     next_generation <- sample(x       = 1:N,

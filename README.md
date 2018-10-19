@@ -136,3 +136,33 @@ done
 cd ../../../
 
 ```
+
+## Effect of having a few very large deletions
+
+```sh
+
+cd tmp/simulations/large_deletion_1
+for p in *; do
+	awk '{print "large_deletion_1\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/large_deletion_2
+for p in *; do
+	awk '{print "large_deletion_2\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/large_deletion_3
+for p in *; do
+	awk '{print "large_deletion_3\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/large_deletion_4
+for p in *; do
+	awk '{print "large_deletion_4\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+```

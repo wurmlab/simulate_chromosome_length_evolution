@@ -9,6 +9,8 @@ output:
 
 ```{r functions, echo = FALSE}
 
+knitr::opts_chunk$set(fig.width = 11, echo = FALSE, include = TRUE)
+
 library(tidyverse)
 
 source('simulation_functions.R')
@@ -49,7 +51,8 @@ In the third step, we select 1000 individuals to form the next generation by sam
 
 ## Run simulations
 
-We first test cases with neutral evolution. We care at looking at different rates of insertions and deletions relative to each other.
+We first test cases with neutral evolution. In the following simulations, the individuals have equal probability of being selected for the next generation, regardless of the value of the loci carried in their chromosomes.
+
 
 ```{r neutral_simulation, cache=TRUE, include=TRUE, echo = FALSE}
 
@@ -75,13 +78,32 @@ neutral_simulations %>%
                 colour = simulation,
                 group = interaction(simulation, simulation_n)),
             size = 0.5) + 
-  theme_bw() + theme(legend.position="right")
+  scale_colour_brewer(palette = "Set1",
+                      name   = "Parameter Set") +
+  ylab("Mean chromosome length") + xlab("Generation") +
+  theme_bw()  +
+  theme(legend.position="right",
+        legend.text.align = 0)
+  # scale_colour_brewer(palette = "Set1",
+  #                     name   = "Parameter Set",
+  #                     labels = expression(
+  #                       paste("Large deletions: rate = 2.5", x10^-6, ", size = 2000"),
+  #                       paste("Large deletions: rate = 1.25", x10^-5, ", size = 2000")
+  #                       )) +
+  # ylab("Mean chromosome length") + xlab("Generation") +
+  # theme_bw()  +
+  # theme(legend.position="right",
+  #       legend.text.align = 0)
 
+
+
+neutral_sim <- neutral_simulations %>%
+  filter(simulation == "Neutral, no bias")
 ```
 
 We now test whether accruing a cost to deletions increases the size of the chromosome. To do this, we give each locus a fitness value (fixed at 10), which is removed by deletions. Insertions have either no fitness cost, or a fitness cost affecting only the two loci neighbouring each insertion (which is a lower fitness cost than deletions).
 
-```{r deletion_cost, include=TRUE, echo = FALSE, cache=FALSE}
+```{r deletion_cost, include=TRUE, cache=FALSE}
 
 deletion_cost <- read.table("tmp/simulations/deletion_with_cost_all_sim")
 
@@ -97,8 +119,7 @@ levels(deletion_cost$simulation) <- c("Deleterious deletions,\n  deleterious ins
                                       "Deleterious deletions,\n  neutral insertions" )
 
 
-deletion_cost            <- rbind(deletion_cost,
-                                  subset(neutral_simulations, simulation == "Neutral, no bias"))
+deletion_cost            <- rbind(deletion_cost, neutral_sim)
 
 re_level <- levels(deletion_cost$simulation) == "Neutral, no bias"
 deletion_cost$simulation <- factor(deletion_cost$simulation,
@@ -117,7 +138,7 @@ deletion_cost %>%
 ```
 The results of the simulations start to get a bit noisy, but we can solve this using a smoothing function.
 
-```{r deletion_cost_smooth, include=TRUE, echo = FALSE, cache=FALSE}
+```{r deletion_cost_smooth, include=TRUE, cache=FALSE}
 
 deletion_cost %>%
     filter(generation <= 1000 & simulation_n %in% 1:5) %>%
@@ -136,7 +157,7 @@ Our simulations suggest that the size of the chromosome undergoes a very large i
 
 However, a non-recombining chromosome is thought to undergo sequence-level degeneration as well degeneration based on insertions and deletions. In the following simulation, we include weakly deleterious point mutations that decrease the fitness value of the locus (which starts at 10) by 2. In this simulation, the size of the chromosome eventually plateaus, as the cost of deletions decreases. We do not include a cost for insertions in these simulations.
 
-```{r deletion_point_mutation, include=TRUE, echo = FALSE, cache=FALSE}
+```{r deletion_point_mutation, include=TRUE, cache=FALSE}
 
 point_mutations <- read.table("tmp/simulations/point_mutations_all_sim")
 
@@ -174,7 +195,7 @@ point_mutations %>%
 
 The results of the simulations start to get a bit noisy, but we can solve this using a smoothing function.
 
-```{r deletion_point_mutation_smooth, include=TRUE, echo = FALSE, cache=FALSE}
+```{r deletion_point_mutation_smooth, include=TRUE, cache=FALSE}
 
 point_mutations %>%
     filter(generation <= 1000 & simulation_n %in% 1:5) %>%
@@ -189,12 +210,52 @@ point_mutations %>%
 
 Adding background degeneration slows down the initial increase, but without causing the chromosome to decrease again.
 
-## Can the chromosome size decrease again?
+## Effect of rare very large deletions
+
+In the following, I chose the same insertion and deletion rates (5e-4) sized 50, but I add very rare but large deletions sized 2000. 
+
+```{r rare_deletion_cost, include=TRUE, cache=FALSE}
+
+
+large_deletions <- read.table("tmp/simulations/large_deletion_all_sim")
+
+colnames(large_deletions) <- results_colnames
+
+large_deletions$simulation_n <- as.character(large_deletions$simulation_n)
+large_deletions$simulation_n <- gsub("\\.txt", "", large_deletions$simulation_n)
+large_deletions$simulation_n <- gsub("simulation_", "", large_deletions$simulation_n)
+large_deletions$simulation_n <- as.numeric(large_deletions$simulation_n)
+
+large_deletions$simulation <- large_deletions$simulation_type
+
+
+large_deletions %>%
+  filter(generation <= 1000 & simulation_n %in% 11:15) %>%
+  filter(simulation %in% c("large_deletion_2", "large_deletion_4") ) %>%
+  ggplot() +
+  geom_line(aes(x = generation,
+                y = mean_length,
+                colour = simulation,
+                group = interaction(simulation, simulation_n)),
+            size = 0.5) + 
+  scale_colour_brewer(palette = "Set1",
+                      name   = "Parameter Set",
+                      labels = expression(
+                        paste("Large deletions: rate = 2.5", x10^-6, ", size = 2000"),
+                        paste("Large deletions: rate = 1.25", x10^-5, ", size = 2000")
+                        )) +
+  ylab("Mean chromosome length") + xlab("Generation") +
+  theme_bw()  +
+  theme(legend.position="right",
+        legend.text.align = 0)
+
+```
+
 
 There are two conditions in which the size of the chromosomes can decrease after their initial increase. The first a having a deletion rate that is slightly higher than the insertion rate, which slows down the initial increase in size of the non-recombining chromosome, but eventually accelerates its decrease. The other is having cost associated with 'junk' loci in the genome. We simulated this by adding a multiplier cost that reduces an individual's fitness proportionally to the number of non-functional loci (i.e. the loci introduced by insertions or rendered non-functional by repeated point mutations).
 
 
-```{r insertion_cost, include=TRUE, echo = FALSE, cache=FALSE}
+```{r insertion_cost, include=TRUE, cache=FALSE}
 
 insertion_cost <- read.table("tmp/simulations/insertion_cost_all_sim")
 
