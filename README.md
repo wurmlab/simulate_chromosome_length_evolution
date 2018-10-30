@@ -21,4 +21,4 @@ sh simulation_list.sh \
 
 ## Analysis of simulations
 
-The analysis of the simulations is done in knitr in the file simulation_report.Rmd, which produced the file simulation_report.html.
+The analysis of the simulations is done in knitr in the file `simulation_report.Rmd`, which produced the file `simulation_report.html`.
