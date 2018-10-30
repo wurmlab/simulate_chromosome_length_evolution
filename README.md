@@ -37,7 +37,7 @@ Rscript simulate.r \ \
 
 To increase the run speed, we are only recording the simulation results at every 20th generation.
 
-## Secind simulation
+## Second simulation
 
 This simulation did not quite work. I have developed a different approach.
 
@@ -88,6 +88,8 @@ cd ../../../
 
 As expected, the average chromosome eventually gets quite large, as the population accumulates insertions but purges highly deleterious deletions.
 
+## Background degeneration
+
 However, a non-recombining chromosome is thought to undergo sequence-level degeneration as well degeneration based on insertions and deletions. In the following simulation, we include weakly deleterious point mutations that decrease the fitness value of the locus (which starts at 10) by 2. In this simulation, the size of the chromosome eventually plateaus, as the cost of deletions decreases.
 
 ```sh
@@ -135,6 +137,18 @@ for p in *; do
 done
 cd ../../../
 
+cd tmp/simulations/deletion_bias_no_background_degeneration2
+for p in *; do
+	awk '{print "deletion_bias_no_background_degeneration2\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/deletion_bias_no_background_degeneration1
+for p in *; do
+	awk '{print "deletion_bias_no_background_degeneration1\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
+
 ```
 
 ## Effect of having a few very large deletions
@@ -162,6 +176,12 @@ cd ../../../
 cd tmp/simulations/large_deletion_4
 for p in *; do
 	awk '{print "large_deletion_4\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/large_deletion_5
+for p in *; do
+	awk '{print "large_deletion_5\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
 done
 cd ../../../
 
