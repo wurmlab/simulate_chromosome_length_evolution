@@ -60,6 +60,8 @@ parallel -j 25 \
 	--neutral TRUE \
   --chromosome_list_out tmp/simulations/neutral_3/simulation_{}.txt' ::: {1..25}
 
+## HIgher cost for deletions than insertions
+
 # We now test whether accruing a cost to deletions increases the size of the chromosome.
 # To do this, we give each locus a fitness value (fixed at 10), which is removed by deletions.
 # Insertions have no fitness cost.
@@ -99,6 +101,8 @@ parallel -j 25 \
 	--every_nth 5 \
 	--neutral FALSE \
  --chromosome_list_out tmp/simulations/deletion_with_cost_insertions_with_cost/simulation_{}.txt' ::: {1..25}
+
+## Backgroung degeneration
 
 # a non-recombining chromosome is thought to undergo sequence-level degeneration
 # as well degeneration based on insertions and deletions. In the following
@@ -192,6 +196,41 @@ parallel -j 25 \
   --neutral FALSE \
   --chromosome_list_out tmp/simulations/deletion_bias_no_background_degeneration/simulation_{}.txt' ::: {1..25}
 
+mkdir -p tmp/simulations/deletion_bias_no_background_degeneration1
+parallel -j 25 \
+  'Rscript run_simulations.r \
+  --generation_number 1000 \
+  --population_size 1000 \
+  --chromosome_length 4000 \
+  --deletion_rate 5.5e-04 \
+  --deletion_size 50 \
+  --point_mutation_rate 0 \
+  --point_mutation_cost 0 \
+  --locus_value 10 \
+  --insertion_rate 5e-04 \
+  --insertion_size 50 \
+  --insertion_cost 0 \
+  --every_nth 5 \
+  --neutral FALSE \
+  --chromosome_list_out tmp/simulations/deletion_bias_no_background_degeneration1/simulation_{}.txt' ::: {1..25}
+
+mkdir -p tmp/simulations/deletion_bias_no_background_degeneration2
+parallel -j 15 \
+  'Rscript run_simulations.r \
+  --generation_number 1000 \
+  --population_size 1000 \
+  --chromosome_length 4000 \
+  --deletion_rate 5.1e-04 \
+  --deletion_size 50 \
+  --point_mutation_rate 0 \
+  --point_mutation_cost 0 \
+  --locus_value 10 \
+  --insertion_rate 5e-04 \
+  --insertion_size 50 \
+  --insertion_cost 0 \
+  --every_nth 5 \
+  --neutral FALSE \
+  --chromosome_list_out tmp/simulations/deletion_bias_no_background_degeneration2/simulation_{}.txt' ::: {1..25}
 
 mkdir -p tmp/simulations/deletion_size_bias_no_background_degeneration
 parallel -j 25 \
@@ -270,7 +309,7 @@ parallel -j 25 \
 mkdir -p tmp/simulations/large_deletion_2
 parallel -j 25 \
   'Rscript run_simulations.r \
-  --generation_number 1000 \
+  --generation_number 1500 \
   --population_size 1000 \
   --chromosome_length 4000 \
   --deletion_rate 5e-04 \
@@ -310,7 +349,7 @@ parallel -j 25 \
 mkdir -p tmp/simulations/large_deletion_4
 parallel -j 25 \
   'Rscript run_simulations.r \
-  --generation_number 1000 \
+  --generation_number 1500 \
   --population_size 1000 \
   --chromosome_length 4000 \
   --deletion_rate 5e-04 \
@@ -384,3 +423,124 @@ parallel -j 25 \
 	--every_nth 5 \
 	--neutral FALSE \
   --chromosome_list_out tmp/simulations/insertion_cost_2/simulation_{}.txt' ::: {1..25}
+
+
+# ---------------------------------------------------------------------------- #
+
+# Join up similar simulation sets into single files,
+#   to help with following step of loading in R
+
+cd tmp/simulations/neutral_1
+for p in *; do
+	awk '{print "neutral_1\t"FILENAME"\t"$0}' $p >> ../neutral_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/neutral_2
+for p in *; do
+	awk '{print "neutral_2\t"FILENAME"\t"$0}' $p >> ../neutral_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/neutral_3
+for p in *; do
+	awk '{print "neutral_3\t"FILENAME"\t"$0}' $p >> ../neutral_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/deletion_with_cost
+for p in *; do
+	awk '{print "deletion_with_cost\t"FILENAME"\t"$0}' $p >> ../deletion_with_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/deletion_with_cost_insertions_with_cost
+for p in *; do
+	awk '{print "deletion_cost_insertion_cost\t"FILENAME"\t"$0}' $p >> ../deletion_with_cost_all_sim
+done
+cd ../../../
+
+## Background degeneration
+
+cd tmp/simulations/point_mutations_2
+for p in *; do
+	awk '{print "point_mutations_2\t"FILENAME"\t"$0}' $p >> ../point_mutations_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/point_mutations_3
+for p in *; do
+	awk '{print "point_mutations_3\t"FILENAME"\t"$0}' $p >> ../point_mutations_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/deletion_bias
+for p in *; do
+	awk '{print "deletion_bias\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/deletion_bias_no_background_degeneration
+for p in *; do
+	awk '{print "deletion_bias_no_background\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/insertion_cost_1
+for p in *; do
+	awk '{print "insertion_cost_1\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/insertion_cost_2
+for p in *; do
+	awk '{print "insertion_cost_2\t"FILENAME"\t"$0}' $p >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/deletion_bias_no_background_degeneration2
+for p in *; do
+	awk '{print "deletion_bias_no_background_degeneration2\t"FILENAME"\t"$0}' $p \
+	  >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/deletion_bias_no_background_degeneration1
+for p in *; do
+	awk '{print "deletion_bias_no_background_degeneration1\t"FILENAME"\t"$0}' $p \
+	  >> ../insertion_cost_all_sim
+done
+cd ../../../
+
+
+## Effect of having a few very large deletions
+
+cd tmp/simulations/large_deletion_1
+for p in *; do
+	awk '{print "large_deletion_1\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/large_deletion_2
+for p in *; do
+	awk '{print "large_deletion_2\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/large_deletion_3
+for p in *; do
+	awk '{print "large_deletion_3\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/large_deletion_4
+for p in *; do
+	awk '{print "large_deletion_4\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
+
+cd tmp/simulations/large_deletion_5
+for p in *; do
+	awk '{print "large_deletion_5\t"FILENAME"\t"$0}' $p >> ../large_deletion_all_sim
+done
+cd ../../../
