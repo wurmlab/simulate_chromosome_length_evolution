@@ -1,0 +1,415 @@
+---
+title: "Simulating degenerative expansion of a non-recombining chromosome"
+author: "Rodrigo Pracana, Queen Mary University of London"
+date: "30/10/2018"
+output: html_document
+---
+
+# Introduction
+
+```{r functions, include=FALSE, echo = FALSE, warning=FALSE}
+
+knitr::opts_chunk$set(fig.width = 11, echo = FALSE, include = TRUE, cache = FALSE)
+
+library(tidyverse)
+
+source('simulation_functions.R')
+
+results_colnames <- c("simulation_type",
+                      "simulation_n",
+                      "generation",
+                      "mean_length",
+                    	"median_length",
+                    	"sd_length",
+                    	"mad_length",
+                    	"max_length",
+                    	"min_length",
+                    	"mean_value",
+                    	"sd_vale",
+                    	"median_value",
+                    	"mad_value",
+                    	"max_value",
+                    	"min_value",
+                    	"mean_junk",
+                    	"sd_junk",
+                    	"median_junk",
+                    	"mean_mutated_loci",
+                    	"median_mutated_loci",
+                    	"sd_mutated_loci")
+```
+
+Using optical maps and whole-genome sequences, we have shown that the supergene variant with suppressed recombination has increased in size. Our interpretations of these results is that this supergene variant has undergone "degenerative expansion". Our argument is that although non-recombining chromosomes accumulate deleterious mutations, they are expected to accumulate weak deleterious mutations faster than relatively stronger deleterious mutations. Because deletions are thought to be generally more deleterious than insertions, non-recombining chromosomes are expected to increase in size.
+
+We have developed a simulation to illustrate our argument. We simulate a population of 1000 individuals, each carrying a single non-recombining haploid chromosome. Each chromosome is initially comprised of 4000 loci. These represent 'functional' loci such as protein-coding genes and regulatory sites. All loci are assigned an arbitrary fitness value of 10. There are three types of mutations: deletions, insertions and point mutations. Deletions decrease the size of the chromosome and are deleterious because they remove 'functional' alleles from the chromosome. Insertions increase the size of the chromosome. They are not necessarily deleterious, although we add an optional cost to two loci directly neighbouring the insertion (the alleles at this loci go from having value 10 to value 0). Deletions and insertions have the same fixed size (50 loci wide). The point mutations represent background degeneration of the chromosome, with an arbitrary cost. For instance, if we choose the point mutation cost to be 5, a site affected by such a mutation goes from having a value of 10 to a value of 5. In a given individual, the same locus can be hit by multiple mutations in different generations, thus becoming less fit over time.
+
+Each generation has three steps. In the first step we mutate the chromosome for each individual. The number of insertions and deletions in the chromosome follow a Poisson distribution with the parameter equal to a chosen mutation rate times the size of the chromosome. The number of point mutations is the round of the multiplication of the point mutation rate by the size of the chromosome. The locations of the mutations are sampled randomly from the chromosome without replacement. For deletions, we remove the affected sites. For insertions, we reduce the value of the two loci neighbouring the insertion location by the insertion cost, and add loci valued 0 between them. For the point mutations, we reduce the value of the affected loci by the point mutation cost.
+
+In the second step, we assign a fitness to each individual as the sum of all the loci values. We determine the relative fitness of each individual by dividing their fitness by the fitness of the individual with highest fitness.
+
+In the third step, we select 1000 individuals to form the next generation by sampling them with replacement, with probability equal to their relative fitnesses.
+
+
+## Run simulations
+
+### Neutral simulations
+
+We first test cases with neutral evolution. In the following simulations, the individuals have equal probability of being selected for the next generation, regardless of the value of the loci carried in their chromosomes. For the first class of simulation, we select the same deletion and insertion rate ($5 \times10^{-4}$, each sized 50 loci), for the secon, we increade deletion rate only (to $1 \times10^{-3}$) and for the third we increase the insertion rate only (to $1 \times 10^{-3}$).
+
+```{r neutral_simulation, include=TRUE, echo = FALSE}
+
+neutral_simulations <- read.table("tmp/simulations/neutral_all_sim")
+
+colnames(neutral_simulations) <- results_colnames
+
+neutral_simulations$simulation_n <- as.character(neutral_simulations$simulation_n)
+neutral_simulations$simulation_n <- gsub("\\.txt", "", neutral_simulations$simulation_n)
+neutral_simulations$simulation_n <- gsub("simulation_", "", neutral_simulations$simulation_n)
+neutral_simulations$simulation_n <- as.numeric(neutral_simulations$simulation_n)
+
+neutral_simulations$simulation         <- neutral_simulations$simulation_type
+levels(neutral_simulations$simulation) <- c("Neutral, no bias",
+                                            "Neutral, higher deletion rate",
+                                            "Neutral, higher insertion rate")
+
+neutral_simulations %>%
+  filter(generation <= 1000 & simulation_n %in% 21:25) %>%
+  ggplot() +
+  geom_line(aes(x = generation,
+                y = mean_length,
+                colour = simulation,
+                group = interaction(simulation, simulation_n)),
+            size = 0.5) +
+    scale_colour_manual(values = c('#fc8d62', '#8da0cb', '#e78ac3'),
+                      name   = "Parameter Set") +
+  ylab("Mean chromosome length") + xlab("Generation") +
+  scale_y_continuous(breaks = seq(0, 20000, 4000)) +
+  theme_bw()  +
+  theme(legend.position="right",
+        legend.text.align = 0)
+  # scale_colour_brewer(palette = "Set2",
+  #                     name   = "Parameter Set",
+  #                     labels = expression(
+  #                       paste("Large deletions: rate = 2.5", x10^-6, ", size = 2000"),
+  #                       paste("Large deletions: rate = 1.25", x10^-5, ", size = 2000")
+  #                       )) +
+  # ylab("Mean chromosome length") + xlab("Generation") +
+  # scale_y_continuous(breaks = seq(0, 20000, 4000)) +
+  # theme_bw()  +
+  # theme(legend.position="right",
+  #       legend.text.align = 0)
+
+
+
+neutral_sim <- neutral_simulations %>%
+  filter(simulation == "Neutral, no bias")
+```
+
+### Simulations when deletions have a higher fitness cost than insertions
+
+We now test whether accruing a cost to deletions increases the size of the chromosome. To do this, we give each locus a fitness value (fixed at 10), which is removed by deletions. Insertions have either no fitness cost, or a fitness cost affecting only the two loci neighbouring each insertion (which is a lower fitness cost than deletions).
+
+```{r deletion_cost, include=TRUE}
+
+deletion_cost <- read.table("tmp/simulations/deletion_with_cost_all_sim")
+
+colnames(deletion_cost) <- results_colnames
+
+deletion_cost$simulation_n <- as.character(deletion_cost$simulation_n)
+deletion_cost$simulation_n <- gsub("\\.txt", "", deletion_cost$simulation_n)
+deletion_cost$simulation_n <- gsub("simulation_", "", deletion_cost$simulation_n)
+deletion_cost$simulation_n <- as.numeric(deletion_cost$simulation_n)
+
+deletion_cost$simulation <- deletion_cost$simulation_type
+levels(deletion_cost$simulation) <- c("Deleterious deletions, deleterious insertions",
+                                      "Deleterious deletions, neutral insertions")
+
+deletion_cost            <- rbind(deletion_cost, neutral_sim)
+
+re_level <- levels(deletion_cost$simulation) == "Neutral, no bias"
+deletion_cost$simulation <- factor(deletion_cost$simulation,
+                                     levels = levels(deletion_cost$simulation)[c(3,2,1)])
+
+my_plot <- deletion_cost %>%
+  filter(generation <= 1000 & simulation_n %in% 21:25) %>%
+    mutate(simulation = fct_recode(simulation,
+                               "Neutral" = "Neutral, no bias")) %>%
+   ggplot(aes(x = generation,
+             y = mean_length,
+             group = interaction(simulation, simulation_n))) +
+    geom_line(aes(linetype = simulation,
+                  colour = simulation),
+              size = 1) +
+  scale_linetype_manual(name = "Parameter Set",
+                        values = c("dotted", "solid", "longdash")) +
+  scale_colour_manual(values = c('#66c2a5', '#e78ac3', '#8da0cb'),
+                      name   = "Parameter Set") +
+  ylab("Mean chromosome length") + xlab("Generation") +
+    scale_y_continuous(breaks = seq(0, 20000, 4000), limits=c(0, 20000)) +
+  theme_bw()  +
+  theme(legend.position="right",
+        legend.text.align = 0)
+
+print(my_plot)
+
+pdf("results/fig/deletion.pdf", width = 9, height = 4)
+print(my_plot)
+dev.off()
+
+```
+
+```{r deletion_cost_smooth, include=FALSE, eval = FALSE}
+
+deletion_cost %>%
+    filter(generation <= 1000 & simulation_n %in% 21:25) %>%
+  ggplot() +
+  stat_smooth(aes(x = generation,
+                  y = mean_length,
+                  colour = simulation),
+              size = 0.5) + 
+  theme_bw() + theme(legend.position="right")
+
+```
+
+Our simulations suggest that the size of the chromosome undergoes a very large increase, but slower to decrease. This is due to the lower of a cost of insertions relative to deletions. The size increase seems to plateau, as deletions become more likely to affect previously inserted sites, where they are no longer deleterious.
+
+### Effect of background degeneration
+
+However, a non-recombining chromosome is thought to undergo sequence-level degeneration as well degeneration based on insertions and deletions. In the following simulation, we include point mutations that are less costly than insertions or deletions, halving the fitness value of the locus where they occur (from 10 to 5). Point mutations happen at a higher rate than insertions and deletions ($2.5\times10^{-2}$ instead of $5\times10^{-4}$) but each affects only a single locus. In the following simulation, the size of the chromosome eventually plateaus, as the cost of deletions decreases. We do not include a cost for insertions in these simulations.
+
+```{r background_degeneration, include=TRUE}
+
+point_mutations <- read.table("tmp/simulations/point_mutations_all_sim")
+
+colnames(point_mutations) <- results_colnames
+
+point_mutations$simulation_n <- as.character(point_mutations$simulation_n)
+point_mutations$simulation_n <- gsub("\\.txt", "", point_mutations$simulation_n)
+point_mutations$simulation_n <- gsub("simulation_", "", point_mutations$simulation_n)
+point_mutations$simulation_n <- as.numeric(point_mutations$simulation_n)
+
+
+point_mutations <- subset(point_mutations, simulation_type == "point_mutations_2")
+
+point_mutations$simulation         <- droplevels(point_mutations$simulation_type)
+levels(point_mutations$simulation) <- "Background degeneration"
+
+point_mutations <- rbind(point_mutations,
+                         subset(deletion_cost,
+                                simulation == "Deleterious deletions, neutral insertions"),
+                         neutral_sim)
+
+point_mutations$simulation <- droplevels(point_mutations$simulation)
+
+point_mutations$simulation <- factor(point_mutations$simulation,
+                                     levels = levels(point_mutations$simulation)[c(2,3,1)])
+
+my_plot <- point_mutations %>%
+  filter(generation <= 1000 & simulation_n %in% 21:25) %>%
+  mutate(simulation = fct_recode(simulation,
+                               "Neutral" = "Neutral, no bias")) %>%
+  ggplot(aes(x = generation,
+             y = mean_length,
+             group = interaction(simulation, simulation_n))) +
+    geom_line(aes(linetype = simulation,
+                  colour = simulation),
+              size = 1) +
+  scale_linetype_manual(name = "Parameter Set",
+                        values = c("dotted", "solid", "longdash")) +
+  scale_colour_manual(values = c('#66c2a5', '#e78ac3', '#8da0cb'),
+                      name   = "Parameter Set") +
+  ylab("Mean chromosome length") + xlab("Generation") +
+    scale_y_continuous(breaks = seq(0, 20000, 4000), limits=c(0, 20000)) +
+  theme_bw()  +
+  theme(legend.position="right",
+        legend.text.align = 0)
+
+print(my_plot)
+
+pdf("results/fig/background_degeneration.pdf", width = 9, height = 4)
+print(my_plot)
+dev.off()
+
+```
+
+
+```{r deletion_point_mutation_smooth, include=FALSE, eval = FALSE}
+
+point_mutations %>%
+    filter(generation <= 1000 & simulation_n %in% 21:25) %>%
+  ggplot() +
+  stat_smooth(aes(x = generation,
+                  y = mean_length,
+                  colour = simulation),
+              size = 0.5) + 
+  theme_bw() + theme(legend.position="right")
+
+```
+
+Adding background degeneration slows down the initial increase, but without causing the chromosome size to decrease again.
+
+
+### Effect of deletion rate bias
+
+In the following simulation, test whether having a slightly higher deletion rate () than insertion rate () allows the chromosome to decrease in size after its initial decrease. I remove the background degeneration.
+
+```{r deletion_bias, include=TRUE, warning=FALSE}
+
+deletion_bias <- read.table("tmp/simulations/insertion_cost_all_sim")
+
+colnames(deletion_bias) <- results_colnames
+
+deletion_bias$simulation_n <- as.character(deletion_bias$simulation_n)
+deletion_bias$simulation_n <- gsub("\\.txt", "", deletion_bias$simulation_n)
+deletion_bias$simulation_n <- gsub("simulation_", "", deletion_bias$simulation_n)
+deletion_bias$simulation_n <- as.numeric(deletion_bias$simulation_n)
+
+deletion_bias %>% 
+  filter(simulation_type %in% c("deletion_bias_no_background",
+                                "deletion_bias_no_background_degeneration1")) %>%
+  mutate(simulation = simulation_type) %>%
+  droplevels() %>%
+  bind_rows(subset(deletion_cost,
+                   simulation == "Deleterious deletions, neutral insertions"))  %>%
+  mutate(simulation = fct_relevel(simulation,
+                                  "Deleterious deletions, neutral insertions",
+                                  "deletion_bias_no_background_degeneration1",
+                                  "deletion_bias_no_background")) %>%
+  filter(generation <= 1000 & simulation_n %in% 21:25) %>%
+  ggplot(aes(x = generation,
+             y = mean_length,
+             group = interaction(simulation, simulation_n))) +
+    geom_line(aes(linetype = simulation,
+                  colour = simulation),
+              size = 1) +
+  scale_linetype_manual(name = "Parameter Set",
+                        values = c("longdash", "dotted", "solid"),
+                      labels = expression(
+                        paste("Insertion rate = 5", x10^-4, ", deletion rate = 5", x10^-4),
+                        paste("Insertion rate = 5", x10^-4, ", deletion rate = 5.5", x10^-4),
+                        paste("Insertion rate = 5", x10^-4, ", deletion rate = 6", x10^-4)
+                        )) +
+  scale_colour_manual(values = c('#8da0cb', '#66c2a5', '#e78ac3'),
+                      name   = "Parameter Set",
+                      labels = expression(
+                        paste("Insertion rate = 5", x10^-4, ", deletion rate = 5", x10^-4),
+                        paste("Insertion rate = 5", x10^-4, ", deletion rate = 5.5", x10^-4),
+                        paste("Insertion rate = 5", x10^-4, ", deletion rate = 6", x10^-4)
+                        )) +
+  ylab("Mean chromosome length") + xlab("Generation") +
+  theme_bw()  +
+    scale_y_continuous(breaks = seq(0, 20000, 4000), limits=c(0, 20000)) +
+  theme(legend.position="right",
+        legend.text.align = 0)
+
+```
+
+### Effect of rare very large deletions
+
+In the following, I chose the same insertion and deletion rates (5 $\times$ 10 $^{-4}$) sized 50, but I add very rare but large deletions sized 2000. The mutation rates for normal insertions and deletions are the same as above (both $5\times10^{-4}$ and sized 50). If the rate for large deletions is an order of magnitude smaller than the rate of normal deletions, the size of the chromosome decreases after the original increase. However, if the rate of large deletions is two orders of magnitude smaller than that of normal deletions, the size of the chromosome decreases only occasionally.
+
+```{r rare_deletion_cost, include=TRUE}
+
+
+large_deletions <- read.table("tmp/simulations/large_deletion_all_sim")
+
+colnames(large_deletions) <- results_colnames
+
+large_deletions$simulation_n <- as.character(large_deletions$simulation_n)
+large_deletions$simulation_n <- gsub("\\.txt", "", large_deletions$simulation_n)
+large_deletions$simulation_n <- gsub("simulation_", "", large_deletions$simulation_n)
+large_deletions$simulation_n <- as.numeric(large_deletions$simulation_n)
+
+large_deletions$simulation <- large_deletions$simulation_type
+
+
+my_plot <- large_deletions %>%
+  filter(generation <= 1000 & simulation_n %in% 21:25) %>%
+  filter(simulation %in% c("large_deletion_2", "large_deletion_4") ) %>%
+  mutate(simulation = fct_relevel(simulation,
+                                "large_deletion_4" ,
+                                "large_deletion_2")) %>%
+  ggplot(aes(x = generation,
+             y = mean_length,
+             group = interaction(simulation, simulation_n))) +
+    geom_line(aes(linetype = simulation,
+                  colour = simulation),
+              size = 1) +
+    scale_linetype_manual(name = "Parameter Set",
+                          values = c("dashed", "solid"),
+                        labels = expression(
+                          paste("Large deletions: rate = 1.25", x10^-5, ", size = 2000"),
+                          paste("Large deletions: rate = 2.5", x10^-6, ", size = 2000")
+                          )) +
+    scale_colour_manual(values = c('#e78ac3','#a6d854'),
+                        name   = "Parameter Set",
+                        labels = expression(
+                          paste("Large deletions: rate = 1.25", x10^-5, ", size = 2000"),
+                          paste("Large deletions: rate = 2.5", x10^-6, ", size = 2000")
+                          )) +
+    ylab("Mean chromosome length") + xlab("Generation") +
+    theme_bw()  +
+    scale_y_continuous(breaks = seq(0, 20000, 4000), limits=c(0, 20000)) +
+    theme(legend.position="right",
+          legend.text.align = 0)
+
+print(my_plot)
+
+pdf("results/fig/large_deletions.pdf", width = 9, height = 4)
+print(my_plot)
+dev.off()
+
+```
+
+### Cost of junk
+
+The other is having cost associated with 'junk' loci in the genome. We simulated this by adding a multiplier cost that reduces an individual's fitness proportionally to the number of non-functional loci (i.e. the loci introduced by insertions or rendered non-functional by repeated point mutations).
+
+```{r insertion_cost, include=TRUE, warning=FALSE}
+
+junk_cost <- read.table("tmp/simulations/insertion_cost_all_sim")
+
+colnames(junk_cost) <- results_colnames
+
+junk_cost$simulation_n <- as.character(junk_cost$simulation_n)
+junk_cost$simulation_n <- gsub("\\.txt", "", junk_cost$simulation_n)
+junk_cost$simulation_n <- gsub("simulation_", "", junk_cost$simulation_n)
+junk_cost$simulation_n <- as.numeric(junk_cost$simulation_n)
+
+junk_cost %>% 
+  filter(simulation_type %in% c("insertion_cost_1", "insertion_cost_2")) %>%
+  mutate(simulation = simulation_type) %>%
+  droplevels() %>%
+  bind_rows(subset(point_mutations,
+                   simulation == "Background degeneration"))  %>%
+  mutate(simulation = fct_relevel(simulation,
+                                 "Background degeneration" ,
+                                 "insertion_cost_1",
+                                 "insertion_cost_2")) %>%
+  filter(generation <= 1000 & simulation_n %in% 21:25) %>%
+   ggplot(aes(x = generation,
+             y = mean_length,
+             group = interaction(simulation, simulation_n))) +
+    geom_line(aes(linetype = simulation,
+                  colour = simulation),
+              size = 1) +
+  scale_linetype_manual(name = "Parameter Set",
+                        values = c("longdash", "dotted", "solid"),
+                      labels = expression(
+                        paste("No junk cost"),
+                        paste("Junk cost = - 50% x the number of junk alleles"),
+                        paste("Junk cost = - 100% x the number of junk alleles")
+                        )) +
+ scale_colour_manual(values = c('#fc8d62', '#8da0cb', '#e78ac3'),
+                      name   = "Parameter Set",
+                      labels = expression(
+                        paste("No junk cost"),
+                        paste("Junk cost = - 50% x the number of junk alleles"),
+                        paste("Junk cost = - 100% x the number of junk alleles")
+                        )) +
+  ylab("Mean chromosome length") + xlab("Generation") +
+  theme_bw()  +
+    scale_y_continuous(breaks = seq(0, 20000, 4000), limits=c(0, 20000)) +
+  theme(legend.position="right",
+        legend.text.align = 0)
+  
+```
