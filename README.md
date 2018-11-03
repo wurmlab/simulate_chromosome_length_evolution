@@ -1,4 +1,4 @@
-# Simulate chromosome size increase in the absence of recombination
+# Simulate chromosome size evolution in the absence of recombination
 
 Using optical maps and whole-genome sequences, we have shown that the supergene variant with suppressed recombination has increased in size. Our interpretations of these results is that this supergene variant has undergone "degenerative expansion". Our argument is that although non-recombining chromosomes accumulate deleterious mutations, they are expected to accumulate weak deleterious mutations faster than relatively stronger deleterious mutations. Because deletions are thought to be generally more deleterious than insertions, non-recombining chromosomes are expected to increase in size.
 
